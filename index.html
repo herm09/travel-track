@@ -1,11 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelTrack</title>
+
+  <link rel="stylesheet" href="Front/leaflet.css">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #map { width: 100%; height: 100%; }
+
+    /* Loading overlay */
+    #loader {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #0d1117;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px;
+      font-family: system-ui, sans-serif;
+      color: #8b949e;
+      font-size: 0.9rem;
+      transition: opacity .5s;
+    }
+    #loader .pin { font-size: 2.5rem; animation: bounce 1.2s infinite; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+
+    /* Accuracy circle */
+    .accuracy-ring { stroke: #58a6ff; fill: #58a6ff22; stroke-width: 1; }
+
+    /* ── Smooth zoom fix ──────────────────────────────────
+       Leaflet animates tiles with CSS transforms; we must
+       give the GPU a compositing hint and let Leaflet own
+       the transition — never override it globally.        */
+    .leaflet-zoom-animated {
+      will-change: transform;
+    }
+    .leaflet-tile-container {
+      will-change: transform;
+    }
+    /* Leaflet sets its own transition on zoom; don't touch it */
+    .leaflet-zoom-anim .leaflet-zoom-animated {
+      transition: transform 0.25s cubic-bezier(0,0,0.25,1) !important;
+    }
+
+    /* Leaflet controls */
+    .leaflet-control-zoom { border: none !important; }
+    .leaflet-control-zoom a {
+      background: rgba(13,17,23,.85) !important;
+      color: #e6edf3 !important;
+      border: 1px solid #30363d !important;
+      border-radius: 6px !important;
+      margin-bottom: 4px !important;
+      backdrop-filter: blur(8px);
+      transition: background .15s !important;
+    }
+    .leaflet-control-zoom a:hover { background: #21262d !important; }
+    .leaflet-control-attribution {
+      background: rgba(13,17,23,.7) !important;
+      color: #8b949e !important;
+      font-size: 0.65rem !important;
+      border-radius: 6px 0 0 0 !important;
+    }
+    .leaflet-control-attribution a { color: #58a6ff !important; }
+    .leaflet-popup-content-wrapper {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      color: #e6edf3;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    .leaflet-popup-tip { background: #161b22; }
+    .leaflet-popup-content { margin: 12px 16px; font-family: system-ui, sans-serif; font-size: 0.9rem; }
+  </style>
 </head>
 <body>
-    
+
+  <!-- Loading screen -->
+  <div id="loader">
+    <div class="pin">📍</div>
+    <span>Finding your location…</span>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="Front/leaflet.js"></script>
+  <script>
+    /* Fix local marker paths */
+    L.Icon.Default.prototype.options.iconUrl       = 'Front/images/marker-icon.png';
+    L.Icon.Default.prototype.options.iconRetinaUrl = 'Front/images/marker-icon-2x.png';
+    L.Icon.Default.prototype.options.shadowUrl     = 'Front/images/marker-shadow.png';
+    delete L.Icon.Default.prototype._getIconUrl;
+
+    /* Init map — tuned for smooth zoom */
+    const map = L.map('map', {
+      center: [20, 0],
+      zoom: 2,
+      zoomControl: true,
+      attributionControl: true,
+      zoomAnimation: true,
+      zoomAnimationThreshold: 4,
+      fadeAnimation: true,
+      markerZoomAnimation: true,
+      zoomSnap: 1,               // snap to whole levels — tiles only load once per zoom step
+      zoomDelta: 1,
+      wheelPxPerZoomLevel: 120,
+      preferCanvas: true
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      keepBuffer: 6,             // pre-load tiles outside the viewport
+      updateWhenZooming: false   // batch tile requests to after zoom settles, not during
+    }).addTo(map);
+
+    const loader = document.getElementById('loader');
+
+    function hideLoader() {
+      loader.classList.add('hidden');
+      setTimeout(() => loader.remove(), 600);
+    }
+
+    function placeMe(lat, lng, accuracy) {
+      /* Fly to position */
+      map.flyTo([lat, lng], 15, { duration: 1.8 });
+
+      /* Accuracy circle */
+      if (accuracy && accuracy < 5000) {
+        L.circle([lat, lng], {
+          radius: accuracy,
+          className: 'accuracy-ring',
+          interactive: false
+        }).addTo(map);
+      }
+
+      /* You-are-here marker */
+      const youIcon = L.divIcon({
+        className: '',
+        html: `<div style="
+          width: 18px; height: 18px; border-radius: 50%;
+          background: #58a6ff;
+          border: 3px solid #fff;
+          box-shadow: 0 0 0 5px rgba(88,166,255,.35), 0 2px 10px rgba(0,0,0,.6);
+        "></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9]
+      });
+
+      L.marker([lat, lng], { icon: youIcon })
+        .addTo(map)
+        .bindPopup('<strong>📍 You are here</strong>')
+        .openPopup();
+
+      hideLoader();
+    }
+
+    /* Try geolocation */
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => placeMe(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
+        _err => {
+          /* Fallback: just show the world map */
+          loader.querySelector('span').textContent = 'Location unavailable';
+          setTimeout(hideLoader, 1200);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      loader.querySelector('span').textContent = 'Geolocation not supported';
+      setTimeout(hideLoader, 1200);
+    }
+  </script>
 </body>
 </html>
