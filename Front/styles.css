@@ -1,0 +1,346 @@
+/* ═══════════════════════════════════════════
+   TRAVEL TRACK — styles.css
+   (généré manuellement, pas de build tool)
+   ═══════════════════════════════════════════ */
+
+/* ─── Reset ─────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ─── Base ──────────────────────────────── */
+html, body {
+  height: 100%;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+/* ─── Layout app ────────────────────────── */
+.app {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+}
+
+/* ─── Sidebar ───────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px;
+  background: #0d1117;
+  border-right: 1px solid #21262d;
+  overflow-y: auto;
+}
+
+/* ─── Header sidebar ────────────────────── */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #21262d;
+}
+
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #58a6ff, #a371f7);
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  box-shadow: 0 0 14px rgba(88, 166, 255, 0.35);
+}
+
+.sidebar-header h1 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.sidebar-header p {
+  font-size: 0.72rem;
+  color: #6e7681;
+  margin-top: 1px;
+}
+
+/* ─── Status dot ────────────────────────── */
+.status-dot {
+  margin-left: auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #6e7681;
+  box-shadow: 0 0 6px #6e7681;
+  flex-shrink: 0;
+  transition: background 0.4s, box-shadow 0.4s;
+}
+
+.status-dot.idle    { background: #6e7681; box-shadow: 0 0 6px #6e7681; }
+.status-dot.loading { background: #e3b341; box-shadow: 0 0 8px #e3b341; animation: pulse 1s infinite; }
+.status-dot.ok      { background: #3fb950; box-shadow: 0 0 8px #3fb950; }
+.status-dot.error   { background: #f85149; box-shadow: 0 0 8px #f85149; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ─── Boutons ───────────────────────────── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  width: 100%;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, #58a6ff, #a371f7);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(88, 166, 255, 0.3);
+}
+
+.btn-primary:hover   { box-shadow: 0 6px 24px rgba(88, 166, 255, 0.45); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-ghost {
+  background: #161b22;
+  color: #e6edf3;
+  border: 1px solid #30363d;
+}
+
+.btn-ghost:hover { border-color: #58a6ff; background: rgba(88, 166, 255, 0.07); }
+.btn-ghost.active { background: rgba(248, 81, 73, 0.12); border-color: rgba(248, 81, 73, 0.5); color: #ff7b72; }
+
+/* ─── Error box ─────────────────────────── */
+.error-box {
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.35);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  color: #ff7b72;
+  display: none;
+  line-height: 1.5;
+}
+
+.error-box.visible { display: block; }
+
+/* ─── Cards infos ───────────────────────── */
+.card {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+
+.card:hover { border-color: #58a6ff; }
+
+.card-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #6e7681;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+/* Grille 2 colonnes pour les données GPS */
+.data-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.data-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.data-key {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #6e7681;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.data-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #e6edf3;
+}
+
+/* ─── Horodatage ────────────────────────── */
+.timestamp-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e6edf3;
+}
+
+.timestamp-ago {
+  font-size: 0.75rem;
+  color: #6e7681;
+  margin-top: 4px;
+}
+
+/* ─── Historique ────────────────────────── */
+.history-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-item {
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.76rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.history-item:hover {
+  border-color: #58a6ff;
+  background: rgba(88, 166, 255, 0.05);
+}
+
+.history-item .h-time { color: #6e7681; font-size: 0.7rem; }
+
+/* ─── Zone carte ────────────────────────── */
+.map-wrapper {
+  position: relative;
+  height: 100%;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── Overlay initial carte ─────────────── */
+#map-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 17, 23, 0.78);
+  display: grid;
+  place-items: center;
+  z-index: 800;
+  opacity: 1;
+  pointer-events: all;
+  transition: opacity 0.4s;
+}
+
+#map-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.overlay-inner {
+  text-align: center;
+  color: #6e7681;
+}
+
+.overlay-inner .icon { font-size: 3rem; margin-bottom: 12px; }
+.overlay-inner p     { font-size: 0.9rem; }
+.overlay-inner strong { color: #e6edf3; }
+
+/* ─── Spinner de chargement ─────────────── */
+#loader-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 17, 23, 0.78);
+  display: none;
+  place-items: center;
+  z-index: 801;
+}
+
+#loader-overlay.visible { display: grid; }
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid #21262d;
+  border-top-color: #58a6ff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Leaflet overrides ─────────────────── */
+.leaflet-zoom-animated   { will-change: transform; }
+.leaflet-tile-container  { will-change: transform; }
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+  transition: transform 0.25s cubic-bezier(0, 0, 0.25, 1) !important;
+}
+
+.leaflet-control-zoom { border: none !important; }
+
+.leaflet-control-zoom a {
+  background: rgba(13, 17, 23, 0.88) !important;
+  color: #e6edf3 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 6px !important;
+  margin-bottom: 4px !important;
+  backdrop-filter: blur(8px);
+  transition: background 0.15s !important;
+}
+
+.leaflet-control-zoom a:hover { background: #21262d !important; }
+
+.leaflet-control-attribution {
+  background: rgba(13, 17, 23, 0.72) !important;
+  color: #6e7681 !important;
+  font-size: 0.65rem !important;
+  border-radius: 6px 0 0 0 !important;
+}
+
+.leaflet-control-attribution a { color: #58a6ff !important; }
+
+.leaflet-popup-content-wrapper {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  color: #e6edf3;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+}
+
+.leaflet-popup-tip     { background: #161b22; }
+.leaflet-popup-content { margin: 12px 16px; font-size: 0.88rem; }
+
+/* ─── Accuracy ring on map ──────────────── */
+.accuracy-ring { stroke: #58a6ff; fill: rgba(88, 166, 255, 0.1); stroke-width: 1.5; }

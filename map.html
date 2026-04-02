@@ -7,7 +7,7 @@
   <meta name="description" content="Interactive travel map powered by Leaflet.js — explore and track your journeys around the world.">
 
   <!-- Leaflet CSS (local) -->
-  <link rel="stylesheet" href="../Front/leaflet.css">
+  <link rel="stylesheet" href="Front/leaflet.css">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -265,6 +265,97 @@
       display: flex; align-items: center; justify-content: center;
     }
     .fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(63,185,80,.6); }
+    .fab.tracking { background: linear-gradient(135deg, var(--accent2), #a371f7); }
+
+    /* ─── Geo Panel ──────────────────────────────────────── */
+    .geo-panel {
+      position: absolute;
+      bottom: 90px; right: 28px;
+      z-index: 998;
+      width: 284px;
+      background: rgba(13, 17, 23, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 16px 48px rgba(0,0,0,.65);
+      opacity: 0;
+      transform: translateY(14px) scale(0.96);
+      pointer-events: none;
+      transition: opacity .28s ease, transform .28s cubic-bezier(.34,1.4,.64,1);
+    }
+    .geo-panel.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+    /* header */
+    .geo-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .geo-title {
+      font-size: 0.78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--accent2);
+    }
+    .geo-live {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.74rem; color: var(--text-muted);
+    }
+    .geo-led {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border);
+      transition: background .4s;
+    }
+    .geo-led.on  { background: var(--accent); box-shadow: 0 0 7px var(--accent); animation: blink 1.6s ease-in-out infinite; }
+    .geo-led.err { background: var(--accent3); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .geo-close-btn {
+      background: none; border: none;
+      color: var(--text-muted); cursor: pointer;
+      font-size: 15px; line-height: 1; padding: 2px 4px;
+      border-radius: 4px; transition: color .2s, background .2s;
+    }
+    .geo-close-btn:hover { color: var(--text); background: var(--surface2); }
+    /* grid */
+    .geo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+    .geo-cell {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+    }
+    .geo-cell.full { grid-column: 1 / -1; }
+    .geo-lbl {
+      font-size: 0.65rem; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .geo-val {
+      font-size: 0.92rem; font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .geo-val.hi  { color: var(--accent2); }
+    .geo-val.dim { color: var(--text-muted); font-size: 0.8rem; font-weight: 400; }
+    /* accuracy quality bar */
+    .geo-qbar {
+      margin-top: 5px; height: 3px;
+      background: var(--border); border-radius: 2px; overflow: hidden;
+    }
+    .geo-qfill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent3), var(--accent), var(--accent2));
+      border-radius: 2px;
+      transition: width .6s ease;
+    }
 
     /* ─── Toast ─────────────────────────────────────────── */
     .toast {
@@ -363,7 +454,60 @@
   <!-- Map -->
   <div style="position:relative;flex:1;">
     <div id="map"></div>
-    <button class="fab" id="locateBtn" title="Go to my location">📍</button>
+
+    <!-- ── Geo detail panel ──────────────────────────── -->
+    <div class="geo-panel" id="geoPanel" role="complementary" aria-label="Geolocation details">
+      <div class="geo-header">
+        <span class="geo-title">📡 My Location</span>
+        <div class="geo-live">
+          <div class="geo-led" id="geoLed"></div>
+          <span id="geoStatus">Off</span>
+        </div>
+        <button class="geo-close-btn" id="geoCloseBtn" title="Close">✕</button>
+      </div>
+
+      <div class="geo-grid">
+        <div class="geo-cell">
+          <div class="geo-lbl">Latitude</div>
+          <div class="geo-val hi" id="geoLat">—</div>
+        </div>
+        <div class="geo-cell">
+          <div class="geo-lbl">Longitude</div>
+          <div class="geo-val hi" id="geoLng">—</div>
+        </div>
+
+        <div class="geo-cell full">
+          <div class="geo-lbl">Accuracy</div>
+          <div class="geo-val" id="geoAcc">—</div>
+          <div class="geo-qbar"><div class="geo-qfill" id="geoQfill" style="width:0"></div></div>
+        </div>
+
+        <div class="geo-cell">
+          <div class="geo-lbl">Altitude</div>
+          <div class="geo-val" id="geoAlt">—</div>
+        </div>
+        <div class="geo-cell">
+          <div class="geo-lbl">Alt. Accuracy</div>
+          <div class="geo-val" id="geoAltAcc">—</div>
+        </div>
+
+        <div class="geo-cell">
+          <div class="geo-lbl">Speed</div>
+          <div class="geo-val" id="geoSpeed">—</div>
+        </div>
+        <div class="geo-cell">
+          <div class="geo-lbl">Heading</div>
+          <div class="geo-val" id="geoHeading">—</div>
+        </div>
+
+        <div class="geo-cell full">
+          <div class="geo-lbl">Last fix</div>
+          <div class="geo-val" id="geoTime" style="font-size:.82rem">—</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="fab" id="locateBtn" title="Toggle live geolocation">📍</button>
   </div>
 
 </div>
@@ -372,14 +516,14 @@
 <div class="toast" id="toast"></div>
 
 <!-- Leaflet JS (local) -->
-<script src="../Front/leaflet.js"></script>
+<script src="Front/leaflet.js"></script>
 
 <script>
 /* ─── Tile layers ────────────────────────────────────── */
 /* Fix default marker image paths for local install */
-L.Icon.Default.prototype.options.iconUrl      = '../Front/images/marker-icon.png';
-L.Icon.Default.prototype.options.iconRetinaUrl = '../Front/images/marker-icon-2x.png';
-L.Icon.Default.prototype.options.shadowUrl    = '../Front/images/marker-shadow.png';
+L.Icon.Default.prototype.options.iconUrl       = 'Front/images/marker-icon.png';
+L.Icon.Default.prototype.options.iconRetinaUrl = 'Front/images/marker-icon-2x.png';
+L.Icon.Default.prototype.options.shadowUrl     = 'Front/images/marker-shadow.png';
 delete L.Icon.Default.prototype._getIconUrl;
 
 const tileOpts = { keepBuffer: 6, updateWhenZooming: false };
@@ -492,19 +636,150 @@ function setStyle(name) {
 }
 
 /* ─── Geolocation ────────────────────────────────────── */
-document.getElementById('locateBtn').addEventListener('click', () => {
-  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
-  showToast('Locating you…');
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude: lat, longitude: lng } = pos.coords;
-    map.flyTo([lat, lng], 10, { duration: 1.5 });
-    L.circleMarker([lat, lng], {
-      radius: 8, color: '#58a6ff', fillColor: '#58a6ff',
-      fillOpacity: 0.8, weight: 2
-    }).addTo(map).bindPopup('📍 You are here').openPopup();
-    showToast('Found your location!');
-  }, () => showToast('Could not get location'));
-});
+(function () {
+  let watchId    = null;   // watchPosition ID
+  let meMarker   = null;   // blue dot marker
+  let meCircle   = null;   // accuracy ring
+  let isOpen     = false;
+
+  const btn       = document.getElementById('locateBtn');
+  const panel     = document.getElementById('geoPanel');
+  const led       = document.getElementById('geoLed');
+  const statusTxt = document.getElementById('geoStatus');
+
+  /* Cardinal direction from heading degrees */
+  function toCard(deg) {
+    if (deg == null) return '';
+    return ['N','NE','E','SE','S','SW','W','NW'][Math.round(deg / 45) % 8];
+  }
+
+  /* Render a value or a dimmed dash */
+  function val(id, text, dim) {
+    const el = document.getElementById(id);
+    el.textContent = text ?? '—';
+    el.className   = 'geo-val' + (text == null ? ' dim' : dim ? ' dim' : '');
+  }
+
+  /* Update every field in the panel */
+  function paint(pos) {
+    const c   = pos.coords;
+    const lat = c.latitude,  lng = c.longitude;
+    const acc = c.accuracy;                        // metres
+    const alt = c.altitude;                        // m | null
+    const aac = c.altitudeAccuracy;               // m | null
+    const spd = c.speed;                           // m/s | null
+    const hdg = c.heading;                         // ° | null
+    const ts  = new Date(pos.timestamp);
+
+    /* Coordinates */
+    val('geoLat',  lat.toFixed(6) + '°');
+    val('geoLng',  lng.toFixed(6) + '°');
+
+    /* Accuracy + quality bar */
+    val('geoAcc', acc < 1000 ? Math.round(acc) + ' m' : (acc / 1000).toFixed(1) + ' km');
+    /* bar: 100 % = 5 m, 0 % = 1000 m — logarithmic feel */
+    const q = Math.max(0, Math.min(100, 100 * (1 - Math.log10(Math.max(1, acc)) / 3)));
+    document.getElementById('geoQfill').style.width = q.toFixed(1) + '%';
+
+    /* Altitude */
+    val('geoAlt',    alt != null ? Math.round(alt) + ' m'     : null);
+    val('geoAltAcc', aac != null ? '± ' + Math.round(aac) + ' m' : null);
+
+    /* Speed & heading */
+    val('geoSpeed',   spd != null ? (spd * 3.6).toFixed(1) + ' km/h' : null);
+    val('geoHeading', hdg != null ? Math.round(hdg) + '° ' + toCard(hdg) : null);
+
+    /* Timestamp */
+    document.getElementById('geoTime').textContent =
+      ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    /* LED → live */
+    led.className   = 'geo-led on';
+    statusTxt.textContent = 'Live';
+
+    /* ── Map layer: blue dot + accuracy ring ── */
+    if (meMarker) map.removeLayer(meMarker);
+    if (meCircle) map.removeLayer(meCircle);
+
+    if (acc < 10000) {
+      meCircle = L.circle([lat, lng], {
+        radius: acc,
+        color: '#58a6ff', fillColor: '#58a6ff',
+        fillOpacity: 0.08, weight: 1, interactive: false
+      }).addTo(map);
+    }
+
+    const dot = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:18px;height:18px;border-radius:50%;
+        background:#58a6ff;
+        border:3px solid #fff;
+        box-shadow:0 0 0 5px rgba(88,166,255,.28),0 2px 10px rgba(0,0,0,.5);
+      "></div>`,
+      iconSize: [18, 18], iconAnchor: [9, 9]
+    });
+
+    meMarker = L.marker([lat, lng], { icon: dot }).addTo(map).bindPopup(
+      `<div class="popup-title">📍 You are here</div>
+       <div class="popup-sub">${lat.toFixed(5)}°, ${lng.toFixed(5)}°</div>
+       <div class="popup-sub" style="margin-top:4px">
+         Accuracy: ${Math.round(acc)} m
+         ${alt  != null ? ' · Alt: '   + Math.round(alt)  + ' m'        : ''}
+         ${spd  != null ? ' · '        + (spd*3.6).toFixed(1) + ' km/h' : ''}
+         ${hdg  != null ? ' · '        + Math.round(hdg) + '° ' + toCard(hdg) : ''}
+       </div>`
+    );
+  }
+
+  function onError() {
+    led.className = 'geo-led err';
+    statusTxt.textContent = 'Error';
+    showToast('Could not get location');
+  }
+
+  function openPanel() {
+    isOpen = true;
+    panel.classList.add('show');
+    btn.classList.add('tracking');
+    btn.textContent = '🧭';
+    btn.title = 'Stop tracking';
+    led.className = 'geo-led';
+    statusTxt.textContent = 'Locating…';
+    showToast('Locating you…');
+
+    /* First fix → fly to position */
+    navigator.geolocation.getCurrentPosition(pos => {
+      map.flyTo([pos.coords.latitude, pos.coords.longitude], 14, { duration: 1.5 });
+      paint(pos);
+      showToast('Location found!');
+
+      /* Continuous updates */
+      watchId = navigator.geolocation.watchPosition(paint, onError, {
+        enableHighAccuracy: true,
+        maximumAge: 5000
+      });
+    }, onError, { enableHighAccuracy: true, timeout: 12000 });
+  }
+
+  function closePanel() {
+    isOpen = false;
+    panel.classList.remove('show');
+    btn.classList.remove('tracking');
+    btn.textContent = '📍';
+    btn.title = 'Toggle live geolocation';
+    led.className = 'geo-led';
+    statusTxt.textContent = 'Off';
+    if (watchId != null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  }
+
+  btn.addEventListener('click', () => {
+    if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+    isOpen ? closePanel() : openPanel();
+  });
+
+  document.getElementById('geoCloseBtn').addEventListener('click', closePanel);
+})();
 
 /* ─── Simple search ──────────────────────────────────── */
 document.getElementById('searchInput').addEventListener('input', function () {
