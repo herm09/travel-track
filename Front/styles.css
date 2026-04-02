@@ -149,6 +149,7 @@ html, body {
 }
 
 .error-box.visible { display: block; }
+.hidden { display: none !important; }
 
 /* ─── Cards infos ───────────────────────── */
 .card {
@@ -212,6 +213,10 @@ html, body {
 }
 
 /* ─── Historique ────────────────────────── */
+.history-title {
+  margin-bottom: 6px;
+}
+
 .history-list {
   list-style: none;
   display: flex;

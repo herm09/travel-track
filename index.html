@@ -34,7 +34,7 @@
       <span>📍</span> Localiser ma position
     </button>
 
-    <button class="btn btn-ghost" id="btnWatch" style="display:none">
+    <button class="btn btn-ghost hidden" id="btnWatch">
       <span id="watchIcon">👁️</span>
       <span id="watchLabel">Suivi continu</span>
     </button>
@@ -43,7 +43,7 @@
     <div class="error-box" id="errorBox"></div>
 
     <!-- Coordonnées GPS -->
-    <div class="card" id="cardCoords" style="display:none">
+    <div class="card hidden" id="cardCoords">
       <div class="card-label">📌 Coordonnées GPS</div>
       <div class="data-grid">
         <div class="data-item">
@@ -66,7 +66,7 @@
     </div>
 
     <!-- Vitesse & Cap -->
-    <div class="card" id="cardSpeed" style="display:none">
+    <div class="card hidden" id="cardSpeed">
       <div class="card-label">🚀 Vitesse & Cap</div>
       <div class="data-grid">
         <div class="data-item">
@@ -81,15 +81,15 @@
     </div>
 
     <!-- Horodatage -->
-    <div class="card" id="cardTime" style="display:none">
+    <div class="card hidden" id="cardTime">
       <div class="card-label">🕐 Horodatage</div>
       <div class="timestamp-val" id="timestamp">—</div>
       <div class="timestamp-ago" id="timestampAgo"></div>
     </div>
 
     <!-- Historique -->
-    <div id="historySection" style="display:none">
-      <div class="card-label" style="margin-bottom:6px">🗂️ Historique</div>
+    <div id="historySection" class="hidden">
+      <div class="card-label history-title">🗂️ Historique</div>
       <ul class="history-list" id="historyList"></ul>
     </div>
 
@@ -241,7 +241,7 @@
 
     // Afficher les cards
     ['cardCoords', 'cardSpeed', 'cardTime', 'historySection', 'btnWatch'].forEach(id => {
-      $(id).style.display = '';
+      $(id).classList.remove('hidden');
     });
 
     // Historique
