@@ -659,3 +659,55 @@ svg.leaflet-image-layer.leaflet-interactive path {
 		print-color-adjust: exact;
 		}
 	}
+
+/* ─── Geolocation Panel (Custom) ────────── */
+.geo-panel {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+  background: var(--surface, #111620);
+  border: 1px solid var(--border2, rgba(255,255,255,0.14));
+  border-radius: var(--r, 14px);
+  padding: 16px 20px;
+  width: 240px;
+  font-family: var(--font-body, system-ui);
+  color: var(--text, #e8edf5);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  backdrop-filter: blur(12px);
+  transition: opacity 0.3s;
+}
+
+.geo-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.geo-panel-title {
+  font-family: var(--font-head, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--accent, #4d9fff);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.geo-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+.geo-row:last-child {
+  margin-bottom: 0;
+}
+
+.geo-label {
+  color: var(--text-muted, #7a8499);
+}
+
+.geo-row strong {
+  font-family: monospace;
+  font-size: 0.85rem;
+}

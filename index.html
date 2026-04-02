@@ -408,6 +408,16 @@
 
   <div id="map"></div>
 
+  <!-- Geolocation Data Panel -->
+  <div id="geoDataPanel" class="geo-panel hidden">
+    <div class="geo-panel-title">📍 Données GPS</div>
+    <div class="geo-row"><span class="geo-label">Latitude</span><strong id="geoLat">—</strong></div>
+    <div class="geo-row"><span class="geo-label">Longitude</span><strong id="geoLng">—</strong></div>
+    <div class="geo-row"><span class="geo-label">Précision</span><strong id="geoAcc">—</strong></div>
+    <div class="geo-row"><span class="geo-label">Altitude</span><strong id="geoAlt">—</strong></div>
+    <div class="geo-row"><span class="geo-label">Vitesse</span><strong id="geoSpd">—</strong></div>
+  </div>
+
   <!-- HUD -->
   <div id="hud">
     <span class="hud-logo">TravelTrack</span>
@@ -507,7 +517,9 @@
     }
 
     /* ── Geolocation ────────────────────────────────────── */
-    function placeMe(lat, lng, accuracy) {
+    function placeMe(pos) {
+      const { latitude: lat, longitude: lng, accuracy, altitude, speed } = pos.coords;
+      
       userLatLng = L.latLng(lat, lng);
       map.flyTo([lat, lng], 15, { duration: 1.8 });
 
@@ -536,12 +548,21 @@
       renderQuestZones();
       updateHUD();
       updateBadge();
+
+      // Mettre à jour le panneau de géolocalisation
+      document.getElementById('geoLat').textContent = lat.toFixed(5) + '°';
+      document.getElementById('geoLng').textContent = lng.toFixed(5) + '°';
+      document.getElementById('geoAcc').textContent = '±' + Math.round(accuracy) + ' m';
+      document.getElementById('geoAlt').textContent = (altitude != null) ? Math.round(altitude) + ' m' : 'N/A';
+      document.getElementById('geoSpd').textContent = (speed != null) ? (speed * 3.6).toFixed(1) + ' km/h' : 'N/A';
+      document.getElementById('geoDataPanel').classList.remove('hidden');
+
       hideLoader();
     }
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        p => placeMe(p.coords.latitude, p.coords.longitude, p.coords.accuracy),
+        p => placeMe(p),
         _err => {
           loader.querySelector('.loader-label').textContent = 'Localisation indisponible';
           setTimeout(() => {
